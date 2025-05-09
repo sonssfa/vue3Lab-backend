@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.sonss.lab.backend.user.mapper.UserMapper">
+
+    <!-- 로그인 -->
+    <select id="selectUserLogin" resultType="kr.sonss.lab.backend.user.dto.UserDTO">
+        SELECT seq_id, user_name, tel_number, email, user_pwd, mem_status, login_yn
+        FROM member_tb
+        WHERE email = #{email} LIMIT 1
+    </select>
+
+    <!-- 로그아웃 -->
+    <update id="updateLogInOut">
+        UPDATE member_tb
+        SET login_yn = #{loginYn}
+        WHERE email = #{email}
+          And seq_id = #{seqId}
+    </update>
+
+    <!-- 모든 회원 조회 -->
+    <select id="findAll" resultType="kr.sonss.lab.backend.user.dto.UserDTO">
+        SELECT a.seq_id,
+               a.user_name,
+               a.tel_number,
+               a.email,
+               a.mem_status,
+               b.code_nm   AS mem_status_nm,
+               b.code_attr AS mem_status_badge,
+               a.login_yn,
+               a.leave_date,
+               a.reg_date,
+               a.reg_id,
+               a.upd_date,
+               a.upd_id
+        FROM member_tb a
+                 LEFT JOIN code_tb b
+                           ON a.mem_status = b.code_id
+                               AND b.group_cd = 'MEM_STATUS'
+        WHERE 1 = 1
+        ORDER BY a.seq_id Desc
+    </select>
+
+    <!-- 특정 회원 조회 -->
+    <select id="selectUserInfo" resultType="kr.sonss.lab.backend.user.dto.UserDTO">
+        SELECT user_name,
+               tel_number,
+               email,
+               user_pwd,
+               birthday,
+               case
+                   when gender in ('1', '3') then 'M'
+                   when gender in ('2', '4') then 'F'
+                   else '-' end AS gender,
+               zip_code,
+               address1,
+               address2,
+               mem_status,
+               leave_date,
+               reg_date,
+               reg_id,
+               upd_date,
+               upd_id
+        FROM member_tb
+        WHERE seq_id = #{seqId}
+    </select>
+
+    <!-- 회원 신규 등록 -->
+    <update id="insertUser">
+        INSERT INTO member_tb (user_name,
+                               tel_number,
+                               email,
+                               user_pwd,
+                               birthday,
+                               gender,
+                               zip_code,
+                               address1,
+                               address2,
+                               mem_status,
+                               login_yn,
+                               leave_date,
+                               reg_date,
+                               reg_id,
+                               upd_date,
+                               upd_id)
+        VALUES (#{userName},
+                #{telNumber},
+                #{email},
+                #{userPwd},
+                #{birthday},
+                #{gender},
+                #{zipCode},
+                #{address1},
+                #{address2},
+                #{memStatus},
+                null,
+                null,
+                SYSDATE(),
+                'admin',
+                null,
+                null)
+    </update>
+
+    <!-- 회원 수정 -->
+    <update id="updateUser">
+        UPDATE member_tb
+        SET user_name  = #{userName},
+            tel_number = #{telNumber},
+            birthday   = #{birthday},
+            gender     = #{gender},
+            email      = #{email},
+            zip_code   = #{zipCode},
+            address1   = #{address1},
+            address2   = #{address2},
+            mem_status = #{memStatus},
+            upd_date   = SYSDATE(),
+            upd_id     = 'admin'
+        WHERE seq_id = #{seqId}
+    </update>
+
+    <!-- 회원 삭제 -->
+    <update id="deleteUser">
+        DELETE
+        FROM member_tb
+        WHERE seq_id = #{seqId}
+    </update>
+
+    <!-- 비밀번호 초기화 -->
+    <update id="updateUserPwdReset">
+        UPDATE member_tb
+        SET user_pwd = #{userPwd},
+            upd_date = SYSDATE(),
+            upd_id   = 'admin'
+        WHERE seq_id = #{seqId}
+    </update>
+
+    <!-- 이메일 중복체크 -->
+    <select id="selectEmailDupCheck">
+        SELECT count(email)
+        FROM member_tb
+        WHERE email = #{email}
+    </select>
+</mapper>

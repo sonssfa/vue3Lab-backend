@@ -1,0 +1,70 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.4'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'kr.sonss.lab'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    // Spring Boot starter
+    implementation 'org.springframework.boot:spring-boot-starter'
+    // Web
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Spring Security 는 매우 강력하고 유연한 프레임워크로,  다양한 인증 방식
+    // (폼 로그인,  HTTP Basic 인증,  OAuth 2.0 등),  사용자 관리,  접근 제어 규칙 설정 등을  지원합니다.
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    //JDBC
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+    // MariaDB JDBC Driver
+    implementation 'org.mariadb.jdbc:mariadb-java-client:3.5.1'
+    //runtimeOnly 'org.mariadb.jdbc:mariadb-java-client:3.3.3' // MariaDB 드라이버 추가 3.3.3
+
+    // Lombok 라이브러리
+    // Java 클래스에서 반복적으로 작성되는 코드를 자동으로 생성해주는 라이브러리
+    // ex) Getter, Setter, 생성자, toString(), equals(), hashCode() 등의 메서드를 어노테이션 기반으로 자동으로 생성
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // MyBatis Spring Boot Starter
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'
+
+    // log4jdbc
+    implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16'
+
+    //jakarta.validation.Valid 사용
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2' // 최신 버전 확인 필요
+    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.5'  // 최신 버전 확인 필요
+
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
