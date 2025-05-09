@@ -1,12 +1,16 @@
 package kr.sonss.lab.backend.user.service;
 
+import kr.sonss.lab.backend.common.util.Aes256KeyProvider;
+import kr.sonss.lab.backend.common.util.Aes256Util;
 import kr.sonss.lab.backend.user.dto.UserDTO;
 import kr.sonss.lab.backend.user.mapper.UserMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,6 +27,12 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper mapper;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private Aes256Util aes256Util;
+
+    @Autowired
+    private Aes256KeyProvider keyProvider;
 
     public UserServiceImpl(UserMapper mapper, PasswordEncoder passwordEncoder) {
         this.mapper = mapper;
@@ -64,11 +74,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDTO selectUserInfo(int seqId) {
         UserDTO userDto = mapper.selectUserInfo(seqId);
-//        if ("1".equals(userDto.getGender()) || "3".equals(userDto.getGender())) {
-//            userDto.setGender("M");
-//        } else {
-//            userDto.setGender("F");
-//        }
+        //생년월일 복호화
+        try {
+            String birthday = userDto.getBirthday();
+            System.out.println("############ 생년월일 원문: " + birthday);
+            if (birthday != null && birthday.length() > 9) {
+                SecretKey key = keyProvider.getSecretKey();
+                String decryptBirthday = aes256Util.decrypt(birthday, key);
+                System.out.println("############ 복호화: " + decryptBirthday);
+                userDto.setBirthday(decryptBirthday);
+            }
+        } catch (Exception e) {
+            log.error("Birthday 복호화 오류", e);
+            throw new RuntimeException(e);
+        }
 
         return userDto;
     }
@@ -112,19 +131,25 @@ public class UserServiceImpl implements UserService {
     public int updateUser(UserDTO userDto) {
 
         String birthday = userDto.getBirthday();
+        String lastRrnNo = birthday.substring(0, 1);
         String gender = userDto.getGender();
         if ("M".equals(gender)) {
-            userDto.setGender("1");
-            if ("2".equals(birthday.substring(0, 1))) {
-                userDto.setGender("3");
-            }
+            userDto.setGender("2".equals(lastRrnNo) ? "3" : "1");
+        }
+        if ("F".equals(gender)) {
+            userDto.setGender("2".equals(lastRrnNo) ? "4" : "2");
         }
 
-        if ("F".equals(gender)) {
-            userDto.setGender("2");
-            if ("2".equals(birthday.substring(0, 1))) {
-                userDto.setGender("4");
-            }
+        //암호화 저장
+        try {
+            SecretKey key = keyProvider.getSecretKey();
+            String encryptBirthday = aes256Util.encrypt(birthday, key);
+            userDto.setBirthday(encryptBirthday);
+            System.out.println("############ 생년월일 원문: " + birthday);
+            System.out.println("############ 암호화: " + encryptBirthday);
+        } catch (Exception e) {
+            log.error("Birthday 암호화 오류", e);
+            throw new RuntimeException(e);
         }
 
         return mapper.updateUser(userDto);

@@ -1,0 +1,3 @@
+# src/main/resources/application.yml
+aes256:
+  secret: b5a2J1N8z78+vI/2FZGcWn0FV+JKYw78YF/DoM8lQ9I=  # 예시용 Base64 인코딩된 32바이트 키
